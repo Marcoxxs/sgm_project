@@ -1,0 +1,10 @@
+.main{
+    display: grid;
+    gap: 10;
+    
+}
+
+.menu{
+    flex: 1;
+    place-items: center;
+}
