@@ -4,7 +4,6 @@ import "./style.css"
 function RegistrosPage() {
     return (
             <div className="main"> 
-                <div><MenuComponent/></div>
                 <div className="menu">
                     <h1> Pagina Registros 
                     </h1>

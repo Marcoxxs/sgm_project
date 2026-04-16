@@ -4,7 +4,6 @@ import "./style.css"
 function AnotacoesPage() {
     return (
             <div className="main"> 
-                <div><MenuComponent/></div>
                 <div className="menu">
                     <h1> Pagina Anotações
                     </h1>

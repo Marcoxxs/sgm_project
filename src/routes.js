@@ -5,10 +5,12 @@ import RegistrosPage from "./app/features/users/pages/RegistrosPage";
 import DashboardsPage from "./app/features/users/pages/DashboardsPage";
 import AnotacoesPage from "./app/features/users/pages/AnotacoesPage";
 import AjudaPage from "./app/features/users/pages/AjudaPage";
+import MenuComponent from "./app/features/users/components/MenuComponent";
 
 function RoutesApp() {
     return (
         <BrowserRouter>
+        <MenuComponent/>
             <Routes>
                 <Route path="/" element={<MainPage />} />
                 <Route path="/laboratorio" element={<LaboratorioPage />} />

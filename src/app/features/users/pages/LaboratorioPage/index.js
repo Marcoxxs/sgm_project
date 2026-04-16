@@ -4,7 +4,6 @@ import "./style.css"
 function LaboratorioPage() {
     return (
             <div className="main"> 
-                <div><MenuComponent/></div>
                 <div className="menu">
                     <h1> Pagina Laboratorio 
                     </h1>
