@@ -9,8 +9,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
-import { HomeOutlined } from '@mui/icons-material';
+import { AppRegistration, GroupAdd, Help, HomeOutlined, NoteAlt, QueryStats } from '@mui/icons-material';
+import { HelpIcon } from '@mui/icons-material/Help';
 
 function MenuComponent() {
 
@@ -28,7 +28,7 @@ function MenuComponent() {
           <ListItem disablePadding>
             <ListItemButton>
               <ListItemIcon>
-                 <MailIcon />
+                 <GroupAdd />
               </ListItemIcon>
               <ListItemText primary='Cadastros' />
             </ListItemButton>
@@ -36,7 +36,7 @@ function MenuComponent() {
           <ListItem disablePadding>
             <ListItemButton>
               <ListItemIcon>
-                 <MailIcon />
+                 <AppRegistration />
               </ListItemIcon>
               <ListItemText primary='Registros' />
             </ListItemButton>
@@ -44,7 +44,7 @@ function MenuComponent() {
           <ListItem disablePadding>
             <ListItemButton>
               <ListItemIcon>
-                 <MailIcon />
+                 <QueryStats />
               </ListItemIcon>
               <ListItemText primary='Dashboards' />
             </ListItemButton>
@@ -52,7 +52,7 @@ function MenuComponent() {
           <ListItem disablePadding>
             <ListItemButton>
               <ListItemIcon>
-                 <MailIcon />
+                 <NoteAlt />
               </ListItemIcon>
               <ListItemText primary='Anotações' />
             </ListItemButton>
@@ -60,7 +60,7 @@ function MenuComponent() {
           <ListItem disablePadding>
             <ListItemButton>
               <ListItemIcon>
-                 <MailIcon />
+                 <Help />
               </ListItemIcon>
               <ListItemText primary='Ajuda' />
             </ListItemButton>
