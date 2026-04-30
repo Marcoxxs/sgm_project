@@ -16,13 +16,13 @@ import { Navigate, useNavigate } from 'react-router-dom';
 
 function MenuComponent() {
 
-  //const navigate = useNavigate()
+  const navigate = useNavigate()
 
   const DrawerList = (
     <Box sx={{ width: 250 }} role="presentation">
       <List>
         <ListItem disablePadding>
-          <ListItemButton>
+          <ListItemButton onClick={() => navigate("/")}>
             <ListItemIcon>
               <HomeOutlined />
             </ListItemIcon>
@@ -53,7 +53,7 @@ function MenuComponent() {
           </Accordion>
         </div>
         <ListItem disablePadding>
-          <ListItemButton>
+          <ListItemButton onClick={() => navigate("/registros")}>
             <ListItemIcon>
               <AppRegistration />
             </ListItemIcon>
@@ -61,7 +61,7 @@ function MenuComponent() {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton>
+          <ListItemButton onClick={() => navigate("/dashboard")}>
             <ListItemIcon>
               <QueryStats />
             </ListItemIcon>
@@ -69,7 +69,7 @@ function MenuComponent() {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton>
+          <ListItemButton onClick={() => navigate("/anotacoes")}>
             <ListItemIcon>
               <NoteAlt />
             </ListItemIcon>
@@ -77,7 +77,7 @@ function MenuComponent() {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton>
+          <ListItemButton onClick={() => navigate("/ajuda")}>
             <ListItemIcon>
               <Help />
             </ListItemIcon>
@@ -90,7 +90,13 @@ function MenuComponent() {
 
   return (
     <div>
-      <Drawer variant='temporary' open={true} elevation={0} hideBackdrop={true}>
+      <Drawer variant="permanent" sx={{
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            boxSizing: "border-box",
+          },
+        }}
+      >
         {DrawerList}
       </Drawer>
     </div>

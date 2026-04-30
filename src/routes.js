@@ -10,7 +10,7 @@ import MenuComponent from "./app/features/users/components/MenuComponent";
 function RoutesApp() {
     return (
         <BrowserRouter>
-        <MenuComponent/>
+            <MenuComponent />
             <Routes>
                 <Route path="/" element={<MainPage />} />
                 <Route path="/laboratorio" element={<LaboratorioPage />} />
@@ -22,4 +22,5 @@ function RoutesApp() {
         </BrowserRouter>
     )
 }
+
 export default RoutesApp;

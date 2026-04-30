@@ -11,7 +11,6 @@ function App() {
       <CssBaseline />
       <RoutesApp/>
     </ThemeProvider>
-
   );
 }
 
