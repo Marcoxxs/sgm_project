@@ -8,6 +8,7 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import Tab from '@mui/material/Tab';
 import MesaComponent from "../../components/MesaComponent";
+import SalaComponent from "../../components/SalaComponent";
 
 function MainPage() {
 
@@ -26,11 +27,21 @@ function MainPage() {
                         <Tab label="Carnauba Lab" value="2" />
                     </TabList>
                 </Box>
-                <TabPanel value="1"><Box>
-                    <MesaComponent/>
-                </Box>
+                <TabPanel value="1">
+                    <SalaComponent
+                        nome="Delta Lab"
+                        linhas={3}
+                        colunas={5}
+                    />
                 </TabPanel>
-                <TabPanel value="2">Carnauba Lab</TabPanel>
+
+                <TabPanel value="2">
+                    <SalaComponent
+                        nome="Carnauba Lab"
+                        linhas={4}
+                        colunas={6}
+                    />
+                </TabPanel>
             </TabContext>
         </Box>
     )
