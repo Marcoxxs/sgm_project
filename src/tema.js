@@ -14,13 +14,12 @@ const tema = createTheme ({
         }
     },
     components: {
+        MuiContainer: {styleOverrides:{root:{marginLeft: 250}}},
         MuiDrawer: {
             styleOverrides: {
-
             }
         }
     }
-
 })
 
 export default tema;

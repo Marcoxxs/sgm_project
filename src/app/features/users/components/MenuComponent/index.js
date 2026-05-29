@@ -19,7 +19,7 @@ function MenuComponent() {
   const navigate = useNavigate()
 
   const DrawerList = (
-    <Box sx={{ width: 250 }} role="presentation">
+    <Box role="presentation" sx={{width: 250}}>
       <List>
         <ListItem disablePadding>
           <ListItemButton onClick={() => navigate("/")}>
@@ -90,7 +90,9 @@ function MenuComponent() {
 
   return (
     <div>
-      <Drawer variant="permanent" sx={{
+      <Drawer
+        variant="permanent"
+        sx={{
           flexShrink: 0,
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",

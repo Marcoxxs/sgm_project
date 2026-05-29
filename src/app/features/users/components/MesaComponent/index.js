@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import MenuComponent from "../../components/MenuComponent";
 import { useNavigate } from "react-router-dom";
 import { Box, Button, CardMedia, Typography } from "@mui/material";
 import { useState } from "react";

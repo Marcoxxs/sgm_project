@@ -6,12 +6,13 @@ import DashboardsPage from "./app/features/users/pages/DashboardsPage";
 import AnotacoesPage from "./app/features/users/pages/AnotacoesPage";
 import AjudaPage from "./app/features/users/pages/AjudaPage";
 import MenuComponent from "./app/features/users/components/MenuComponent";
+import { Margin } from "@mui/icons-material";
 
 function RoutesApp() {
     return (
         <BrowserRouter>
             <MenuComponent />
-            <Routes>
+            <Routes style= {{marginleft: "500px", backgroundcolor: "blue"}}>
                 <Route path="/" element={<MainPage />} />
                 <Route path="/laboratorio" element={<LaboratorioPage />} />
                 <Route path="/registros" element={<RegistrosPage />} />
