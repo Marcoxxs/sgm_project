@@ -18,7 +18,7 @@ function MainPage() {
 
     return (
         <Container>
-            <Box sx={{ width: '100%', typography: 'body1', backgroundColor: "red" }}>
+            <Box sx={{ width: '100%', typography: 'body1', }}>
                 <TabContext value={value}>
                     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                         <TabList onChange={handleChange} aria-label="lab API tabs example">
@@ -27,6 +27,7 @@ function MainPage() {
                         </TabList>
                     </Box>
                     <TabPanel value="1">
+                        <MesaComponent numero={3}/>
                     </TabPanel>
 
                     <TabPanel value="2">
