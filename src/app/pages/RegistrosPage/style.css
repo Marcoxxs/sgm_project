@@ -1,0 +1,127 @@
+.registrosPage {
+  padding: 24px 0 48px;
+}
+
+.registrosHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.registrosTitle {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.registrosActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.registrosButton {
+  min-width: 140px;
+  padding: 10px 18px;
+  text-transform: none;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.registrosButton.primary {
+  background-color: #1f78ff;
+  color: white;
+}
+
+.registrosButton.secondary {
+  background-color: transparent;
+  color: #565656;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.registrosFilters {
+  margin-bottom: 20px;
+}
+
+.registrosTablePaper {
+  border-radius: 24px;
+  box-shadow: 0 14px 40px rgba(23, 43, 77, 0.08);
+  overflow: hidden;
+  width: 100%;
+}
+
+.registrosTable {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.registrosTableCellHeader {
+  font-weight: 700;
+  color: #1f2b46;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 14px 12px;
+  background-color: #ffffff;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.registrosTableCell {
+  padding: 14px 12px;
+  color: #454f63;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  white-space: normal;
+  word-break: break-word;
+}
+
+.registrosTableRow:nth-of-type(even) {
+  background-color: #fafbfc;
+}
+
+.laboratorioBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+}
+
+.laboratorioBadge.green {
+  background-color: #22c55e;
+}
+
+.laboratorioBadge.yellow {
+  background-color: #f59e0b;
+}
+
+@media (max-width: 960px) {
+  .registrosHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .registrosActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .registrosButton {
+    width: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .registrosTableCellHeader,
+  .registrosTableCell {
+    padding: 14px 12px;
+  }
+
+  .registrosFilters {
+    margin-bottom: 16px;
+  }
+}

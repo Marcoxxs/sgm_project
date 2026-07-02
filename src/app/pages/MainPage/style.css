@@ -1,0 +1,47 @@
+.mesaGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mesaRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mesaItem {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.carnaubaRow {
+  justify-content: space-between;
+}
+
+.mesaGroup {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+@media (max-width: 1200px) {
+  .mesaRow,
+  .mesaGroup {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .mesaRow,
+  .mesaGroup {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mesaItem {
+    flex: 0 1 120px;
+  }
+}
