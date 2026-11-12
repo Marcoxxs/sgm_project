@@ -46,6 +46,7 @@
     ]
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.2.1"
+    "@tailwindcss/postcss": "^4.2.1",
+    "typescript": "^7.0.2"
   }
 }
