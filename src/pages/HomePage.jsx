@@ -1,97 +1,96 @@
-import { Box, Card, CardActionArea, Divider, Stack, Typography } from "@mui/material";
-import ArrowForward from "@mui/icons-material/ArrowForward";
-import DesktopWindowsOutlined from "@mui/icons-material/DesktopWindowsOutlined";
-import GridViewOutlined from "@mui/icons-material/GridViewOutlined";
-import { Link } from "react-router-dom";
+import { useState, useSyncExternalStore } from "react";
+import { Alert, Box, Card, Snackbar, Stack, Tab, Tabs, Typography } from "@mui/material";
 import PageHeader from "../components/PageHeader";
-import { navigation } from "../routes/navigation";
+import ComputerDialog from "../components/labs/ComputerDialog";
+import LabMap from "../components/labs/LabMap";
+import LabStatusSummary from "../components/labs/LabStatusSummary";
+import { labs } from "../domain/sessions/labs";
+import { memoryLabRepository } from "../services/repositories/memoryLabRepository";
 
-const labs = [
-  { name: "Delta Lab", computers: 15, rows: 3, columns: 5 },
-  { name: "Carnaúba Lab", computers: 24, rows: 4, columns: 6 },
-];
+export default function HomePage({ repository = memoryLabRepository }) {
+  const [labId, setLabId] = useState(labs[0].id);
+  const [selectedId, setSelectedId] = useState(null);
+  const [message, setMessage] = useState("");
+  const { computers, sessions, peopleAvailable } = useSyncExternalStore(repository.subscribe, repository.getSnapshot);
+  const labComputers = computers.filter((computer) => computer.labId === labId);
+  const activeSessions = new Map(sessions
+    .filter((session) => session.status === "active")
+    .map((session) => [session.id, session]));
+  const selected = computers.find((computer) => computer.id === selectedId);
 
-const quickLinks = navigation.filter(({ path }) => ["/cadastros", "/registros", "/dashboard"].includes(path));
-
-export default function HomePage() {
   return (
-    <Stack spacing={{ xs: 3, md: 4 }}>
-      <PageHeader title="Home" description="Visão geral dos laboratórios do Campus Parnaíba." />
-
-      <Box
-        component="section"
-        aria-labelledby="intro-title"
-        sx={{
-          bgcolor: "institutional.navy", color: "common.white", borderRadius: 1,
-          px: { xs: 3, sm: 4 }, py: { xs: 3, sm: 4 },
-          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4,
-        }}
-      >
-        <Stack spacing={1.25}>
-          <Typography component="h2" variant="h2" id="intro-title" sx={{ fontSize: { sm: "1.75rem" } }}>
-            Gerenciamento de laboratórios
-          </Typography>
-          <Typography sx={{ color: "institutional.sidebarText", maxWidth: 475 }}>
-            Consulte a estrutura do Delta Lab e do Carnaúba Lab e navegue pelas áreas do SGMLab.
-          </Typography>
-        </Stack>
-        <Box
-          aria-hidden="true"
-          sx={{
-            display: { xs: "none", sm: "grid" }, placeItems: "center", flexShrink: 0,
-            width: 96, height: 96, border: 1, borderColor: "institutional.sidebarActive",
-            bgcolor: "institutional.sidebarLine", borderRadius: 1, color: "institutional.accent",
-          }}
+    <Stack spacing={{ xs: 2, md: 3 }}>
+      <PageHeader title="Home" description="Selecione um laboratório e abra uma estação para operar." />
+      <Card>
+        <Tabs
+          value={labId}
+          onChange={(_, value) => setLabId(value)}
+          aria-label="Laboratórios"
+          sx={{ borderBottom: 1, borderColor: "divider", px: { xs: 1, sm: 2 } }}
         >
-          <DesktopWindowsOutlined sx={{ fontSize: 46 }} />
-        </Box>
-      </Box>
+          {labs.map((lab) => (
+            <Tab key={lab.id} id={`tab-${lab.id}`} aria-controls={`panel-${lab.id}`} value={lab.id} label={lab.name} />
+          ))}
+        </Tabs>
 
-      <Stack component="section" aria-labelledby="labs-title" spacing={1.5}>
-        <Typography component="h2" variant="h2" id="labs-title">Laboratórios</Typography>
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(2, minmax(0, 1fr))" }, gap: 2 }}>
-          {labs.map(({ name, computers, rows, columns }) => (
-            <Card component="article" key={name}>
-              <Stack spacing={2} sx={{ p: { xs: 2, sm: 2.5 } }}>
-                <Stack direction="row" alignItems="center" spacing={1.5}>
-                  <Box sx={{ display: "grid", placeItems: "center", width: 42, height: 42, bgcolor: "institutional.soft", color: "primary.main", borderRadius: 1 }}>
-                    <DesktopWindowsOutlined fontSize="small" />
+        {labs.map((lab) => (
+          <Box
+            key={lab.id}
+            role="tabpanel"
+            id={`panel-${lab.id}`}
+            aria-labelledby={`tab-${lab.id}`}
+            hidden={lab.id !== labId}
+          >
+            {lab.id === labId && (
+              <Stack spacing={2} sx={{ p: { xs: 1.5, sm: 2.5 } }}>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  justifyContent="space-between"
+                  alignItems={{ xs: "flex-start", sm: "center" }}
+                  spacing={1.5}
+                >
+                  <Box>
+                    <Typography component="h2" variant="h2">{lab.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {lab.rows} fileiras · {lab.columns} estações por fileira
+                    </Typography>
                   </Box>
-                  <Typography component="h3" variant="h3">{name}</Typography>
+                  <LabStatusSummary computers={labComputers} />
                 </Stack>
-                <Divider />
-                <Stack direction="row" flexWrap="wrap" columnGap={3} rowGap={1}>
-                  <Stack direction="row" alignItems="center" spacing={0.75}>
-                    <DesktopWindowsOutlined fontSize="small" color="action" />
-                    <Typography variant="body2"><strong>{computers}</strong> computadores</Typography>
-                  </Stack>
-                  <Stack direction="row" alignItems="center" spacing={0.75}>
-                    <GridViewOutlined fontSize="small" color="action" />
-                    <Typography variant="body2"><strong>{rows} × {columns}</strong> posições</Typography>
-                  </Stack>
-                </Stack>
+                <LabMap
+                  lab={lab}
+                  computers={labComputers}
+                  activeSessions={activeSessions}
+                  onSelect={setSelectedId}
+                />
+                <Typography variant="body2" color="text.secondary">
+                  Dados temporários em memória. As alterações se perdem ao recarregar.
+                </Typography>
               </Stack>
-            </Card>
-          ))}
-        </Box>
-      </Stack>
-
-      <Stack component="section" aria-labelledby="quick-title" spacing={1.5}>
-        <Typography component="h2" variant="h2" id="quick-title">Acesso rápido</Typography>
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "minmax(0, 1fr)", sm: "repeat(3, minmax(0, 1fr))" }, gap: 2 }}>
-          {quickLinks.map(({ path, label, Icon }) => (
-            <Card key={path}>
-              <CardActionArea component={Link} to={path} sx={{ px: 2, py: 1.75, "&:focus-visible": { outlineOffset: -3 } }}>
-                <Stack direction="row" alignItems="center" spacing={1.25}>
-                  <Icon color="primary" fontSize="small" />
-                  <Typography variant="body2" sx={{ flex: 1, fontWeight: 700 }}>{label}</Typography>
-                  <ArrowForward color="action" fontSize="small" />
-                </Stack>
-              </CardActionArea>
-            </Card>
-          ))}
-        </Box>
-      </Stack>
+            )}
+          </Box>
+        ))}
+      </Card>
+      {selected && (
+        <ComputerDialog
+          key={selected.id}
+          computer={selected}
+          lab={labs.find((lab) => lab.id === selected.labId)}
+          session={activeSessions.get(selected.activeSessionId)}
+          repository={repository}
+          peopleAvailable={peopleAvailable}
+          onClose={() => setSelectedId(null)}
+          onSuccess={setMessage}
+        />
+      )}
+      <Snackbar
+        key={message}
+        open={Boolean(message)}
+        autoHideDuration={4000}
+        onClose={(_, reason) => { if (reason !== "clickaway") setMessage(""); }}
+      >
+        <Alert severity="success" onClose={() => setMessage("")}>{message}</Alert>
+      </Snackbar>
     </Stack>
   );
 }
