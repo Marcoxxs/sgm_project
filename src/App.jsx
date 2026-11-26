@@ -1,16 +1,13 @@
-import "./App.css";
-import RoutesApp from "./routes";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import tema from "./tema";
+import { ThemeProvider } from "@mui/material/styles";
+import AppRoutes from "./routes";
+import theme from "./theme";
 
-function App() {
+export default function App() {
   return (
-    <ThemeProvider theme={tema}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
-      <RoutesApp />
+      <AppRoutes />
     </ThemeProvider>
   );
 }
-
-export default App;
