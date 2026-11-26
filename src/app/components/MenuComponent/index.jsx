@@ -1,31 +1,24 @@
-import * as React from "react";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
-import Button from "@mui/material/Button";
 import List from "@mui/material/List";
-import Divider from "@mui/material/Divider";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import {
-  AppRegistration,
-  ChevronRight,
-  GroupAdd,
-  Help,
-  HomeOutlined,
-  NoteAlt,
-  QueryStats,
-} from "@mui/icons-material";
-import { HelpIcon } from "@mui/icons-material/Help";
+import AppRegistration from "@mui/icons-material/AppRegistration";
+import ChevronRight from "@mui/icons-material/ChevronRight";
+import GroupAdd from "@mui/icons-material/GroupAdd";
+import Help from "@mui/icons-material/Help";
+import HomeOutlined from "@mui/icons-material/HomeOutlined";
+import NoteAlt from "@mui/icons-material/NoteAlt";
+import QueryStats from "@mui/icons-material/QueryStats";
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Typography,
 } from "@mui/material";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function MenuComponent() {
   const navigate = useNavigate();

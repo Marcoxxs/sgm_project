@@ -9,7 +9,7 @@ import MainPage from "./app/pages/MainPage";
 
 function RoutesApp() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route element={<MainPage />}>
           <Route path="/" element={<InicioPage />} />

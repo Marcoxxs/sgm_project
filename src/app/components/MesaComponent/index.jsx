@@ -11,9 +11,10 @@ function MesaComponent({ numero, status }) {
   const [open, setOpen] = useState(false);
   const handleClose = () => setOpen(false);
   const getImage = () => {
-    if (active) return "./mesa_active.png";
-    if (hover) return "./mesa_hover.png";
-    return "./mesa_default.png";
+    const baseUrl = import.meta.env.BASE_URL;
+    if (active) return `${baseUrl}mesa_active.png`;
+    if (hover) return `${baseUrl}mesa_hover.png`;
+    return `${baseUrl}mesa_default.png`;
   };
 
   return (

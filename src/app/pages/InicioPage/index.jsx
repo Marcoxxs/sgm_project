@@ -1,10 +1,6 @@
 import { useState } from "react";
 import "./style.css";
-import { Box, Container } from "@mui/material";
-import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
-import TabPanel from "@mui/lab/TabPanel";
-import Tab from "@mui/material/Tab";
+import { Box, Container, Tab, Tabs } from "@mui/material";
 import MesaComponent from "../../components/MesaComponent";
 
 function chunkArray(array, size) {
@@ -70,29 +66,36 @@ function InicioPage() {
   return (
     <Container>
       <Box sx={{ width: "100%", typography: "body1" }}>
-        <TabContext value={value}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <TabList onChange={handleChange} aria-label="lab API tabs example">
-              <Tab label="Delta Lab" value="1" />
-              <Tab label="Carnauba Lab" value="2" />
-            </TabList>
-          </Box>
-          <TabPanel value="1">
-            <Box  sx={{display:"flex", flexDirection:'row', gap: 2, flexWrap:'wrap', }}>
-              { 
-                lab1.map((mesa) => (
-                  <MesaComponent key={mesa.mesa} numero={mesa.mesa} status={mesa.status} />
-                ))  
-              }
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs value={value} onChange={handleChange} aria-label="Laboratórios">
+            <Tab label="Delta Lab" value="1" id="tab-delta" aria-controls="panel-delta" />
+            <Tab label="Carnauba Lab" value="2" id="tab-carnauba" aria-controls="panel-carnauba" />
+          </Tabs>
+        </Box>
+        <Box
+          role="tabpanel"
+          id="panel-delta"
+          aria-labelledby="tab-delta"
+          hidden={value !== "1"}
+          sx={{ p: 3 }}
+        >
+          {value === "1" && (
+            <Box sx={{ display: "flex", flexDirection: "row", gap: 2, flexWrap: "wrap" }}>
+              {lab1.map((mesa) => (
+                <MesaComponent key={mesa.mesa} numero={mesa.mesa} status={mesa.status} />
+              ))}
             </Box>
-          </TabPanel>
-
-          <TabPanel value="2">
-            <Box className="mesaGrid carnaubaGrid">
-              {/* Mesa carnauba Lab */}
-            </Box>
-          </TabPanel>
-        </TabContext>
+          )}
+        </Box>
+        <Box
+          role="tabpanel"
+          id="panel-carnauba"
+          aria-labelledby="tab-carnauba"
+          hidden={value !== "2"}
+          sx={{ p: 3 }}
+        >
+          {value === "2" && <Box className="mesaGrid carnaubaGrid" />}
+        </Box>
       </Box>
     </Container>
   );

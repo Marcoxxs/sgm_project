@@ -1,11 +1,5 @@
-import { useState } from "react";
 import "./style.css";
-import { Box, Container, Menu } from "@mui/material";
-import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
-import TabPanel from "@mui/lab/TabPanel";
-import Tab from "@mui/material/Tab";
-import MesaComponent from "../../components/MesaComponent";
+import { Box } from "@mui/material";
 import MenuComponent from "../../components/MenuComponent";
 import { Outlet } from "react-router-dom";
 
