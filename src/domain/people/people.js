@@ -2,6 +2,11 @@ export const normalizeIdentifier = (value) => String(value ?? "").trim().toUpper
 export const isRegistration = (value) => /^\d+$/.test(value);
 export const isVisitorCode = (value) => /^VIS-\d{4}$/.test(value);
 
+export const normalizeText = (value) => String(value ?? "")
+  .normalize("NFD")
+  .replace(/\p{Diacritic}/gu, "")
+  .toLocaleLowerCase("pt-BR");
+
 export const personIdentifier = (person) => person.registration ?? person.visitorCode;
 
 export function normalizePerson(input) {
@@ -9,7 +14,7 @@ export function normalizePerson(input) {
   return {
     type: input.type,
     name,
-    nameNormalized: name.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("pt-BR"),
+    nameNormalized: normalizeText(name),
     ...(input.type === "student" && {
       registration: normalizeIdentifier(input.registration),
       course: String(input.course ?? ""),
@@ -28,15 +33,15 @@ export function validatePerson(person, catalog) {
   else if (!isRegistration(person.registration)) errors.registration = "Use apenas números na matrícula.";
 
   if (!person.course) errors.course = "Selecione o curso.";
-  else if (!catalog.courses.includes(person.course)) errors.course = "Selecione um curso da lista oficial.";
+  else if (!catalog.courses.some(({ id }) => id === person.course)) errors.course = "Selecione um curso da lista oficial.";
 
-  if (!person.academicPeriod) errors.academicPeriod = "Informe o período acadêmico.";
-  else if (!/^\d+$/.test(person.academicPeriod) || !Number.isSafeInteger(Number(person.academicPeriod)) || Number(person.academicPeriod) < 1) {
-    errors.academicPeriod = "Informe um número inteiro maior que zero.";
+  if (!person.academicPeriod) errors.academicPeriod = "Selecione o período acadêmico.";
+  else if (!catalog.periods.includes(Number(person.academicPeriod))) {
+    errors.academicPeriod = `Selecione um período entre ${catalog.periods[0]}º e ${catalog.periods[catalog.periods.length - 1]}º.`;
   }
 
   if (!person.courseShift) errors.courseShift = "Selecione o turno acadêmico.";
-  else if (!catalog.shifts.includes(person.courseShift)) errors.courseShift = "Selecione um turno da lista oficial.";
+  else if (!catalog.shifts.some(({ id }) => id === person.courseShift)) errors.courseShift = "Selecione um turno da lista oficial.";
   return errors;
 }
 

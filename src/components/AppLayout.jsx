@@ -13,7 +13,9 @@ export default function AppLayout() {
   const theme = useTheme();
   const desktop = useMediaQuery(theme.breakpoints.up("md"));
   const { pathname } = useLocation();
-  const title = navigation.find(({ path }) => path === pathname)?.label;
+  const title = navigation.find(({ path }) => path === "/"
+    ? pathname === "/"
+    : pathname === path || pathname.startsWith(`${path}/`))?.label;
   const closeMenu = () => setMenuOpen(false);
 
   return (

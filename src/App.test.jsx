@@ -9,7 +9,7 @@ import { createMemoryLabRepository } from "./services/repositories/memoryLabRepo
 const routes = [
   ["/", "Home"],
   ["/cadastros", "Cadastros"],
-  ["/registros", "Registros"],
+  ["/registros", "Registros", "Registros de Acesso"],
   ["/dashboard", "Dashboard"],
   ["/anotacoes", "Anotações"],
   ["/ajuda", "Ajuda"],
@@ -42,10 +42,10 @@ function openRoute(path, repository = createMemoryLabRepository()) {
   act(() => root.render(<App repository={repository} />));
 }
 
-test.each(routes)("abre %s e destaca %s no menu", (path, title) => {
+test.each(routes)("abre %s e destaca %s no menu", (path, title, heading = title) => {
   openRoute(path);
 
-  expect(container.querySelector("main h1")?.textContent).toBe(title);
+  expect(container.querySelector("main h1")?.textContent).toBe(heading);
   const nav = container.querySelector("nav[aria-label='Navegação principal']");
   expect([...nav.querySelectorAll("a")].map((link) => link.textContent)).toEqual(routes.map(([, label]) => label));
   const active = nav.querySelectorAll('a[aria-current="page"]');
@@ -163,7 +163,11 @@ test("consulta uma pessoa e só ocupa o PC após confirmação explícita", () =
   expect(repository.getSnapshot().sessions[0].status).toBe("closed");
 });
 
-const catalog = { courses: ["Curso de teste"], shifts: ["Turno de teste"] };
+const catalog = {
+  courses: [{ id: "curso-teste", label: "Curso de teste" }],
+  shifts: [{ id: "turno-teste", label: "Turno de teste" }],
+  periods: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+};
 
 function edit(input, value) {
   const prototype = Object.getPrototypeOf(input);
@@ -193,23 +197,27 @@ function beginContextual(registration) {
 
 function fillAcademicFields(name) {
   fill("name", name);
-  fill("course", catalog.courses[0]);
+  fill("course", catalog.courses[0].id);
   fill("academicPeriod", "2");
-  fill("courseShift", catalog.shifts[0]);
+  fill("courseShift", catalog.shifts[0].id);
 }
 
-test("mostra a pendência de catálogo sem preencher opções institucionais fictícias", () => {
+test("habilita o cadastro de aluno com os seletores do catálogo oficial", () => {
   openRoute("/cadastros");
-  expect(container.textContent).toMatch(/opções oficiais de curso e turno/);
-  expect(formButton("Cadastrar aluno").disabled).toBe(true);
-  expect(container.querySelectorAll('select option')).toHaveLength(2);
+  expect(container.textContent).not.toMatch(/opções oficiais de curso e turno/);
+  expect(container.querySelector('[name="course"]').options).toHaveLength(14);
+  expect(container.querySelector('[name="academicPeriod"]').options).toHaveLength(11);
+  expect(container.querySelector('[name="courseShift"]').options).toHaveLength(4);
+  expect(formButton("Cadastrar aluno").disabled).toBe(false);
+  expect([...container.querySelector('[name="academicPeriod"]').options].map((option) => option.textContent))
+    .toContain("10º período");
 });
 
 test("alterna os tipos, valida obrigatórios, mostra VIS somente leitura e limpa ao cancelar", () => {
   const repository = createMemoryLabRepository({ catalog });
   openRoute("/cadastros", repository);
   click(formButton("Cadastrar aluno"));
-  for (const message of ["Informe o nome completo", "Informe a matrícula", "Selecione o curso", "Informe o período acadêmico", "Selecione o turno acadêmico"]) {
+  for (const message of ["Informe o nome completo", "Informe a matrícula", "Selecione o curso", "Selecione o período acadêmico", "Selecione o turno acadêmico"]) {
     expect(container.textContent).toContain(message);
   }
   click(formButton("Visitante"));

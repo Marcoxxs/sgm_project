@@ -3,6 +3,10 @@ export const labs = Object.freeze([
   Object.freeze({ id: "carnauba", name: "Carnaúba Lab", rows: 4, columns: 6 }),
 ]);
 
+export function labName(labId) {
+  return labs.find(({ id }) => id === labId)?.name ?? "";
+}
+
 export function formatComputer(number) {
   return `PC ${String(number).padStart(2, "0")}`;
 }

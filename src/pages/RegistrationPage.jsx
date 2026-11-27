@@ -5,6 +5,7 @@ import {
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageHeader from "../components/PageHeader";
+import { periodLabel } from "../domain/people/academicCatalog";
 import { isRegistration, PersonValidationError } from "../domain/people/people";
 import { formatComputer, LabOperationError, labs } from "../domain/sessions/labs";
 import { readRegistrationContext } from "../domain/sessions/registrationContext";
@@ -25,8 +26,8 @@ export default function RegistrationPage({ repository }) {
 
   useSyncExternalStore(repository.subscribe, repository.getSnapshot);
   const student = type === "student";
-  const { courses, shifts } = repository.academicOptions;
-  const academicOptionsReady = courses.length > 0 && shifts.length > 0;
+  const { courses, shifts, periods } = repository.academicOptions;
+  const catalogReady = courses.length > 0 && shifts.length > 0 && periods.length > 0;
   const code = repository.getNextVisitorCode();
   const registration = fields.registration.trim();
   const registrationError = errors.registration || (registration && (
@@ -107,11 +108,6 @@ export default function RegistrationPage({ repository }) {
             </ToggleButtonGroup>
           </Stack>
           <Divider />
-          {student && !academicOptionsReady && (
-            <Alert severity="warning">
-              O cadastro de alunos será habilitado quando as opções oficiais de curso e turno acadêmico forem informadas.
-            </Alert>
-          )}
           {failure && <Alert severity="error">{failure}</Alert>}
           {!student && !code && <Alert severity="error">A sequência de códigos VIS-XXXX foi esgotada.</Alert>}
           <Box
@@ -143,21 +139,23 @@ export default function RegistrationPage({ repository }) {
                   slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
                 >
                   <option value="" disabled>Selecione o curso</option>
-                  {courses.map((course) => <option key={course} value={course}>{course}</option>)}
+                  {courses.map((course) => <option key={course.id} value={course.id}>{course.label}</option>)}
                 </TextField>
                 <TextField
-                  required
-                  label="Período acadêmico"
+                  required select label="Período acadêmico" disabled={!periods.length}
                   {...field("academicPeriod")}
-                  slotProps={{ htmlInput: { inputMode: "numeric" } }}
-                />
+                  slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
+                >
+                  <option value="" disabled>Selecione o período</option>
+                  {periods.map((period) => <option key={period} value={String(period)}>{periodLabel(period)}</option>)}
+                </TextField>
                 <TextField
                   required select label="Turno acadêmico" disabled={!shifts.length}
                   {...field("courseShift")}
                   slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
                 >
                   <option value="" disabled>Selecione o turno</option>
-                  {shifts.map((shift) => <option key={shift} value={shift}>{shift}</option>)}
+                  {shifts.map((shift) => <option key={shift.id} value={shift.id}>{shift.label}</option>)}
                 </TextField>
               </>
             ) : (
@@ -172,7 +170,7 @@ export default function RegistrationPage({ repository }) {
           <Divider />
           <Stack direction={{ xs: "column-reverse", sm: "row" }} justifyContent="flex-end" spacing={1.25}>
             <Button variant="outlined" onClick={() => context ? returnToLab() : reset()}>Cancelar</Button>
-            <Button variant="contained" type="submit" disabled={student ? !academicOptionsReady : !code}>
+            <Button variant="contained" type="submit" disabled={student ? !catalogReady : !code}>
               {student ? "Cadastrar aluno" : "Cadastrar visitante"}
             </Button>
           </Stack>

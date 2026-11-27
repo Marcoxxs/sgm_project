@@ -1,17 +1,18 @@
-import {
-  createComputers, LabOperationError, sessionDurationSeconds, validateSessionStart,
-} from "../../domain/sessions/labs";
-
 import { academicCatalog } from "../../domain/people/academicCatalog";
 import {
   isRegistration, isVisitorCode, normalizeIdentifier, normalizePerson,
   personIdentifier, PersonValidationError, validatePerson,
 } from "../../domain/people/people";
+import { personSessions, summarizePerson } from "../../domain/people/personUsage";
+import {
+  createComputers, LabOperationError, sessionDurationSeconds, validateSessionStart,
+} from "../../domain/sessions/labs";
 
 export function createMemoryLabRepository({ catalog = academicCatalog, now = Date.now } = {}) {
   const academicOptions = Object.freeze({
     courses: Object.freeze([...catalog.courses]),
     shifts: Object.freeze([...catalog.shifts]),
+    periods: Object.freeze([...(catalog.periods ?? [])]),
   });
   const listeners = new Set();
   let nextSessionId = 0;
@@ -86,6 +87,10 @@ export function createMemoryLabRepository({ catalog = academicCatalog, now = Dat
     return computer;
   }
 
+  function findPerson(personId) {
+    return snapshot.people.find(({ id }) => id === personId) ?? null;
+  }
+
   function setMaintenance(computerId, entering) {
     const computer = getComputer(computerId);
     if (computer.status === "occupied") {
@@ -121,10 +126,18 @@ export function createMemoryLabRepository({ catalog = academicCatalog, now = Dat
     createPerson: (input) => savePerson(input),
 
     updatePerson(personId, input) {
-      const existing = snapshot.people.find(({ id }) => id === personId);
+      const existing = findPerson(personId);
       if (!existing) throw new LabOperationError("Pessoa não encontrada no cadastro.");
       return savePerson({ ...existing, ...input }, existing);
     },
+
+    getPersonById: (personId) => findPerson(personId),
+    getPersonHistory: (personId) => personSessions(personId, snapshot.sessions),
+    getPersonUsage(personId) {
+      const person = findPerson(personId);
+      return person ? summarizePerson(person, snapshot.sessions) : null;
+    },
+    listPersonSummaries: () => snapshot.people.map((person) => summarizePerson(person, snapshot.sessions)),
 
     findPersonByIdentifier(value) {
       const identifier = normalizeIdentifier(value);
@@ -147,6 +160,12 @@ export function createMemoryLabRepository({ catalog = academicCatalog, now = Dat
         personId,
         personName: person.name,
         personIdentifier: personIdentifier(person),
+        personAcademicSnapshot: Object.freeze({
+          type: person.type,
+          course: person.course ?? null,
+          academicPeriod: person.academicPeriod ?? null,
+          courseShift: person.courseShift ?? null,
+        }),
         labId: computer.labId,
         computerId,
         pcNumber: computer.number,

@@ -1,11 +1,16 @@
 import { describe, expect, test, vi } from "vitest";
+import { academicCatalog } from "../../domain/people/academicCatalog";
 import { sessionDurationSeconds } from "../../domain/sessions/labs";
 import { createMemoryLabRepository } from "./memoryLabRepository";
 
-const catalog = { courses: ["Curso de teste"], shifts: ["Turno de teste"] };
+const catalog = {
+  courses: [{ id: "curso-teste", label: "Curso de teste" }],
+  shifts: [{ id: "turno-teste", label: "Turno de teste" }],
+  periods: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+};
 const studentDraft = {
   type: "student", name: "Pessoa de teste", registration: "00123",
-  course: catalog.courses[0], academicPeriod: "1", courseShift: catalog.shifts[0],
+  course: "curso-teste", academicPeriod: "1", courseShift: "turno-teste",
 };
 
 function withPeople(now) {
@@ -141,5 +146,116 @@ describe("cadastro em memória", () => {
     expect(repository.findPersonByIdentifier("VIS-8888")).toBeNull();
     expect(repository.listPeople()).toHaveLength(3);
     expect(repository.getNextVisitorCode()).toBe("VIS-0004");
+  });
+});
+
+describe("catálogo acadêmico oficial", () => {
+  test("contém os 13 cursos, três turnos e dez períodos com identificadores estáveis", () => {
+    expect(academicCatalog.courses).toHaveLength(13);
+    expect(academicCatalog.courses.map(({ label }) => label)).toEqual([
+      "Ciências Biológicas",
+      "Ciências da Computação",
+      "Ciências Sociais",
+      "Direito",
+      "Enfermagem",
+      "Engenharia Agronômica",
+      "Filosofia",
+      "História",
+      "Letras – Inglês",
+      "Letras – Português",
+      "Odontologia",
+      "Pedagogia",
+      "Tecnólogo em Sistemas de Computação (TSC)",
+    ]);
+    expect(academicCatalog.shifts.map(({ label }) => label)).toEqual(["Manhã", "Tarde", "Noite"]);
+    expect(academicCatalog.shifts.map(({ id }) => id)).not.toContain("integral");
+    expect(academicCatalog.periods).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+    const ids = academicCatalog.courses.map(({ id }) => id);
+    expect(new Set(ids).size).toBe(13);
+    expect(ids.every((id) => /^[a-z-]+$/.test(id))).toBe(true);
+    expect(ids).toContain("ciencias-da-computacao");
+    expect(ids).toContain("tecnologo-sistemas-computacao");
+    expect(ids.filter((id) => id.includes("computacao"))).toEqual([
+      "ciencias-da-computacao",
+      "tecnologo-sistemas-computacao",
+    ]);
+  });
+
+  test("mantém Ciências da Computação e TSC como cursos distintos no cadastro", () => {
+    const repository = createMemoryLabRepository();
+    const bacharelado = repository.createPerson({
+      ...studentDraft,
+      course: "ciencias-da-computacao",
+      academicPeriod: "2",
+      courseShift: "manha",
+      registration: "00001",
+    });
+    const tecnologo = repository.createPerson({
+      ...studentDraft,
+      course: "tecnologo-sistemas-computacao",
+      academicPeriod: "2",
+      courseShift: "manha",
+      registration: "00002",
+    });
+    expect(bacharelado.course).toBe("ciencias-da-computacao");
+    expect(tecnologo.course).toBe("tecnologo-sistemas-computacao");
+    expect(repository.listPeople()).toHaveLength(2);
+  });
+});
+
+describe("histórico e indicadores por pessoa", () => {
+  test("resume último acesso, total de acessos e soma das durações encerradas", () => {
+    let currentTime = 0;
+    const repository = createMemoryLabRepository({ catalog, now: () => currentTime });
+    const student = repository.createPerson(studentDraft);
+    const visitor = repository.createPerson({ type: "visitor", name: "Visitante sem acesso" });
+
+    currentTime = 1_000;
+    repository.startSession("delta_01", student.id);
+    currentTime = 3_601_000;
+    repository.endSession("delta_01");
+    currentTime = 7_200_000;
+    repository.startSession("carnauba_03", student.id);
+    currentTime = 9_000_000;
+    repository.endSession("carnauba_03");
+    currentTime = 10_000_000;
+    const active = repository.startSession("delta_02", student.id);
+
+    const usage = repository.getPersonUsage(student.id);
+    expect(usage.accessCount).toBe(3);
+    expect(usage.totalSeconds).toBe(5400);
+    expect(usage.lastSession).toMatchObject({ id: active.id, labId: "delta", pcNumber: 2, status: "active" });
+    expect(usage.history.map(({ id }) => id)).toEqual([active.id, "session-2", "session-1"]);
+    expect(repository.getPersonHistory(student.id)).toEqual(usage.history);
+    expect(repository.getPersonUsage("person-inexistente")).toBeNull();
+    expect(repository.getPersonById("person-inexistente")).toBeNull();
+
+    const summaries = repository.listPersonSummaries();
+    expect(summaries.find(({ person }) => person.id === visitor.id)).toMatchObject({
+      accessCount: 0, totalSeconds: 0, lastSession: null,
+    });
+    expect(summaries.find(({ person }) => person.id === student.id)).toMatchObject({
+      accessCount: 3, totalSeconds: 5400,
+    });
+  });
+
+  test("preserva o snapshot acadêmico da sessão ao editar a pessoa", () => {
+    const repository = createMemoryLabRepository({ catalog, now: () => 1_000 });
+    const student = repository.createPerson(studentDraft);
+    const session = repository.startSession("delta_01", student.id);
+    expect(session.personAcademicSnapshot).toEqual({
+      type: "student", course: "curso-teste", academicPeriod: 1, courseShift: "turno-teste",
+    });
+
+    repository.updatePerson(student.id, {
+      name: "Nome atualizado", academicPeriod: "5", courseShift: "turno-teste",
+    });
+    const stored = repository.getSnapshot().sessions[0];
+    expect(stored).toBe(session);
+    expect(stored.personName).toBe("Pessoa de teste");
+    expect(stored.personIdentifier).toBe("00123");
+    expect(stored.personAcademicSnapshot).toMatchObject({ course: "curso-teste", academicPeriod: 1 });
+    expect(repository.getPersonById(student.id).academicPeriod).toBe(5);
   });
 });

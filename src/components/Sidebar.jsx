@@ -26,7 +26,7 @@ export default function Sidebar({ onClose }) {
               <ListItemButton
                 component={NavLink}
                 to={path}
-                end
+                end={path === "/"}
                 onClick={onClose}
                 sx={{
                   gap: 1.5, borderRadius: 1, minHeight: 46, color: "institutional.sidebarText",
