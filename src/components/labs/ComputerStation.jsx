@@ -22,7 +22,8 @@ export default function ComputerStation({ computer, session, onSelect }) {
         aria-label={`${name} — ${label}`}
         data-computer-id={computer.id}
         sx={{
-          display: "flex", flexDirection: "column", gap: 0.75, minWidth: 0, minHeight: 92, py: 1,
+          display: "flex", flexDirection: "column", gap: 0.75, minWidth: 0,
+          minHeight: { xs: 100, sm: 118 }, py: 1,
           bgcolor: "background.paper", border: 1, borderColor: "divider", borderRadius: 1,
           "&:hover, &.Mui-focusVisible": { borderColor: "primary.main", color: "primary.dark" },
         }}
@@ -32,7 +33,7 @@ export default function ComputerStation({ computer, session, onSelect }) {
           src={`${import.meta.env.BASE_URL}${image}`}
           alt=""
           draggable={false}
-          sx={{ width: 44, height: 51, objectFit: "contain" }}
+          sx={{ width: { xs: 52, sm: 66 }, height: { xs: 60, sm: 77 }, objectFit: "contain" }}
         />
         <Typography component="span" variant="body2" sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
           {name}

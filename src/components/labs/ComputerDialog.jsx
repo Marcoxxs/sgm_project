@@ -10,6 +10,7 @@ import StopOutlined from "@mui/icons-material/StopOutlined";
 import {
   formatComputer, LabOperationError, sessionDurationSeconds, validateSessionStart,
 } from "../../domain/sessions/labs";
+import { isRegistration, normalizeIdentifier, personIdentifier } from "../../domain/people/people";
 import { computerStatus } from "./computerStatus";
 
 function ActiveSession({ session }) {
@@ -32,11 +33,12 @@ function ActiveSession({ session }) {
 }
 
 export default function ComputerDialog({
-  computer, lab, session, repository, peopleAvailable, onClose, onSuccess,
+  computer, lab, session, repository, initialPerson, onClose, onSuccess, onRegister,
 }) {
-  const [lookup, setLookup] = useState(false);
-  const [identifier, setIdentifier] = useState("");
-  const [person, setPerson] = useState(null);
+  const [lookup, setLookup] = useState(Boolean(initialPerson));
+  const [identifier, setIdentifier] = useState(initialPerson ? personIdentifier(initialPerson) : "");
+  const [person, setPerson] = useState(initialPerson ?? null);
+  const [missingRegistration, setMissingRegistration] = useState("");
   const [notice, setNotice] = useState(null);
   const status = computerStatus[computer.status];
   const maintenance = computer.status === "maintenance";
@@ -63,8 +65,13 @@ export default function ComputerDialog({
     event.preventDefault();
     setPerson(null);
     perform(() => {
-      const match = repository.findPersonByIdentifier(identifier);
-      if (!match) throw new LabOperationError("Pessoa não encontrada. Confira o identificador informado.");
+      const value = normalizeIdentifier(identifier);
+      const match = repository.findPersonByIdentifier(value);
+      if (!match && isRegistration(value)) {
+        setMissingRegistration(value);
+        return;
+      }
+      if (!match) throw new LabOperationError("Código de visitante não encontrado. Confira o código ou faça o cadastro pela página Cadastros.");
       setPerson(match);
     });
   }
@@ -74,7 +81,7 @@ export default function ComputerDialog({
       <DialogTitle component="div" sx={{ pr: 7, position: "relative" }}>
         <Typography variant="body2" color="text.secondary">{lab.name}</Typography>
         <Typography id="computer-dialog-title" component="h2" variant="h2">
-          {lookup ? `Iniciar sessão · ${formatComputer(computer.number)}` : formatComputer(computer.number)}
+          {missingRegistration ? "Aluno não encontrado" : lookup ? `Iniciar sessão · ${formatComputer(computer.number)}` : formatComputer(computer.number)}
         </Typography>
         <IconButton aria-label="Fechar" onClick={onClose} sx={{ position: "absolute", top: 12, right: 12 }}>
           <Close />
@@ -87,16 +94,13 @@ export default function ComputerDialog({
             <Typography variant="body2">Estado atual <strong>{status.label}</strong></Typography>
           </Stack>
           {notice && <Alert severity={notice.severity}>{notice.text}</Alert>}
-          {lookup ? (
+          {missingRegistration ? (
+            <Typography>Não há aluno com a matrícula <strong>{missingRegistration}</strong>. Você pode cadastrá-lo e retornar a este computador.</Typography>
+          ) : lookup ? (
             <Stack spacing={2}>
-              {!peopleAvailable && (
-                <Alert severity="info">
-                  A consulta de pessoas ainda não está integrada ao cadastro. O início de sessões ficará disponível após essa integração.
-                </Alert>
-              )}
               <Stack component="form" spacing={1.5} onSubmit={search}>
                 <TextField
-                  autoFocus
+                  autoFocus={!initialPerson}
                   required
                   fullWidth
                   size="small"
@@ -108,14 +112,14 @@ export default function ComputerDialog({
                     setNotice(null);
                   }}
                 />
-                <Button type="submit" variant="outlined" disabled={!peopleAvailable || !identifier.trim()} sx={{ alignSelf: "flex-start" }}>
+                <Button type="submit" variant="outlined" disabled={!identifier.trim()} sx={{ alignSelf: "flex-start" }}>
                   Consultar
                 </Button>
               </Stack>
               {person && (
                 <Box sx={{ p: 2, border: 1, borderColor: "divider", borderRadius: 1, bgcolor: "background.default" }}>
                   <Typography sx={{ fontWeight: 700 }}>{person.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">{person.identifier}</Typography>
+                  <Typography variant="body2" color="text.secondary">{personIdentifier(person)}</Typography>
                 </Box>
               )}
             </Stack>
@@ -159,7 +163,12 @@ export default function ComputerDialog({
           )}
         </Stack>
       </DialogContent>
-      {lookup && (
+      {missingRegistration ? (
+        <DialogActions>
+          <Button onClick={() => setMissingRegistration("")}>Cancelar</Button>
+          <Button variant="contained" onClick={() => onRegister(missingRegistration)}>Cadastrar aluno</Button>
+        </DialogActions>
+      ) : lookup && (
         <DialogActions>
           <Button onClick={returnToActions}>Voltar</Button>
           <Button

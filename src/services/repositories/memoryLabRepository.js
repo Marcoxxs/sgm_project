@@ -2,38 +2,82 @@ import {
   createComputers, LabOperationError, sessionDurationSeconds, validateSessionStart,
 } from "../../domain/sessions/labs";
 
-const normalizeIdentifier = (value) => value.trim().toUpperCase();
+import { academicCatalog } from "../../domain/people/academicCatalog";
+import {
+  isRegistration, isVisitorCode, normalizeIdentifier, normalizePerson,
+  personIdentifier, PersonValidationError, validatePerson,
+} from "../../domain/people/people";
 
-export function createMemoryLabRepository({ people, now = Date.now } = {}) {
-  const peopleById = new Map();
-  const peopleByIdentifier = new Map();
-
-  for (const person of people ?? []) {
-    if (person.active === false) continue;
-    const identifier = normalizeIdentifier(person.registration ?? person.visitorCode);
-    const record = Object.freeze({ id: person.id, name: person.name, identifier });
-    peopleById.set(record.id, record);
-    peopleByIdentifier.set(identifier, record);
-  }
-
+export function createMemoryLabRepository({ catalog = academicCatalog, now = Date.now } = {}) {
+  const academicOptions = Object.freeze({
+    courses: Object.freeze([...catalog.courses]),
+    shifts: Object.freeze([...catalog.shifts]),
+  });
   const listeners = new Set();
   let nextSessionId = 0;
+  let lastPersonId = 0;
+  let lastVisitorNumber = 0;
   let snapshot = Object.freeze({
     computers: Object.freeze(createComputers().map(Object.freeze)),
     sessions: Object.freeze([]),
     maintenanceEvents: Object.freeze([]),
-    peopleAvailable: people !== undefined,
+    people: Object.freeze([]),
   });
 
-  function publish(computer, changes = {}) {
-    snapshot = Object.freeze({
-      ...snapshot,
+  function publish(changes) {
+    snapshot = Object.freeze({ ...snapshot, ...changes });
+    listeners.forEach((listener) => listener());
+  }
+
+  function updateComputer(computer, changes) {
+    publish({
       ...changes,
       computers: Object.freeze(snapshot.computers.map((entry) =>
         entry.id === computer.id ? Object.freeze(computer) : entry,
       )),
     });
-    listeners.forEach((listener) => listener());
+  }
+
+  function getNextVisitorCode() {
+    return lastVisitorNumber < 9999
+      ? `VIS-${String(lastVisitorNumber + 1).padStart(4, "0")}`
+      : null;
+  }
+
+  function isRegistrationTaken(value, exceptId) {
+    const registration = normalizeIdentifier(value);
+    return snapshot.people.some((person) => person.registration === registration && person.id !== exceptId);
+  }
+
+  function savePerson(input, existing) {
+    const type = existing?.type ?? input.type;
+    if (type !== "student" && type !== "visitor") {
+      throw new LabOperationError("Selecione Aluno ou Visitante.");
+    }
+    const draft = normalizePerson({ ...input, type });
+    const errors = validatePerson(draft, academicOptions);
+    if (type === "student" && !errors.registration && isRegistrationTaken(draft.registration, existing?.id)) {
+      errors.registration = "Esta matrícula já está cadastrada.";
+    }
+    if (Object.keys(errors).length) throw new PersonValidationError(errors);
+
+    const visitorCode = type === "visitor" ? existing?.visitorCode ?? getNextVisitorCode() : null;
+    if (type === "visitor" && !visitorCode) throw new LabOperationError("A sequência de códigos VIS-XXXX foi esgotada.");
+    const updatedAt = now();
+    const record = Object.freeze({
+      id: existing?.id ?? `person-${++lastPersonId}`,
+      ...draft,
+      ...(type === "student" ? { academicPeriod: Number(draft.academicPeriod) } : { visitorCode }),
+      createdAt: existing?.createdAt ?? updatedAt,
+      updatedAt,
+      active: existing?.active ?? true,
+    });
+    if (!existing && type === "visitor") lastVisitorNumber++;
+    const people = existing
+      ? snapshot.people.map((person) => person.id === existing.id ? record : person)
+      : [...snapshot.people, record];
+    publish({ people: Object.freeze(people) });
+    return record;
   }
 
   function getComputer(computerId) {
@@ -57,7 +101,7 @@ export function createMemoryLabRepository({ people, now = Date.now } = {}) {
       action: entering ? "entered" : "exited",
       timestamp: now(),
     });
-    publish({ ...computer, status: entering ? "maintenance" : "available" }, {
+    updateComputer({ ...computer, status: entering ? "maintenance" : "available" }, {
       maintenanceEvents: Object.freeze([...snapshot.maintenanceEvents, event]),
     });
   }
@@ -70,21 +114,30 @@ export function createMemoryLabRepository({ people, now = Date.now } = {}) {
       return () => listeners.delete(listener);
     },
 
+    academicOptions,
+    getNextVisitorCode,
+    isRegistrationTaken,
+    listPeople: () => snapshot.people,
+    createPerson: (input) => savePerson(input),
+
+    updatePerson(personId, input) {
+      const existing = snapshot.people.find(({ id }) => id === personId);
+      if (!existing) throw new LabOperationError("Pessoa não encontrada no cadastro.");
+      return savePerson({ ...existing, ...input }, existing);
+    },
+
     findPersonByIdentifier(value) {
-      if (!snapshot.peopleAvailable) {
-        throw new LabOperationError("A consulta de pessoas ainda não está integrada ao cadastro.");
-      }
       const identifier = normalizeIdentifier(value);
-      if (!/^(?:\d+|VIS-[A-Z0-9]{4})$/.test(identifier)) {
-        throw new LabOperationError("Informe uma matrícula numérica ou um código no formato VIS-XXXX.");
+      if (!isRegistration(identifier) && !isVisitorCode(identifier)) {
+        throw new LabOperationError("Informe uma matrícula numérica ou um código de visitante no formato VIS-0001.");
       }
-      return peopleByIdentifier.get(identifier) ?? null;
+      return snapshot.people.find((person) => person.active && personIdentifier(person) === identifier) ?? null;
     },
 
     startSession(computerId, personId) {
       const computer = getComputer(computerId);
       validateSessionStart(computer);
-      const person = peopleById.get(personId);
+      const person = snapshot.people.find((entry) => entry.id === personId && entry.active);
       if (!person) throw new LabOperationError("Pessoa não encontrada no cadastro.");
       if (snapshot.sessions.some((session) => session.personId === personId && session.status === "active")) {
         throw new LabOperationError("Esta pessoa já possui uma sessão ativa.");
@@ -93,7 +146,7 @@ export function createMemoryLabRepository({ people, now = Date.now } = {}) {
         id: `session-${++nextSessionId}`,
         personId,
         personName: person.name,
-        personIdentifier: person.identifier,
+        personIdentifier: personIdentifier(person),
         labId: computer.labId,
         computerId,
         pcNumber: computer.number,
@@ -101,7 +154,7 @@ export function createMemoryLabRepository({ people, now = Date.now } = {}) {
         startedAt: now(),
         endedAt: null,
       });
-      publish({ ...computer, status: "occupied", activeSessionId: session.id }, {
+      updateComputer({ ...computer, status: "occupied", activeSessionId: session.id }, {
         sessions: Object.freeze([...snapshot.sessions, session]),
       });
       return session;
@@ -120,7 +173,7 @@ export function createMemoryLabRepository({ people, now = Date.now } = {}) {
         endedAt,
         durationSeconds: sessionDurationSeconds(active.startedAt, endedAt),
       });
-      publish({ ...computer, status: "available", activeSessionId: null }, {
+      updateComputer({ ...computer, status: "available", activeSessionId: null }, {
         sessions: Object.freeze(snapshot.sessions.map((entry) => entry.id === session.id ? session : entry)),
       });
       return session;
