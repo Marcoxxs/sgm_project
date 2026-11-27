@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Autenticação não é autorização: pertencer ao Firebase Authentication
+    // não concede acesso a nenhum documento do SGMLab.
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // monitors/{uid} é provisionado apenas por administração confiável (Firebase Console).
+    match /monitors/{uid} {
+      // O próprio monitor lê somente seu documento de autorização, o necessário
+      // para o cliente saber se está ativo. Não é possível listar a coleção.
+      allow get: if signedIn() && request.auth.uid == uid;
+
+      // Nenhum cliente cria, altera ou exclui documentos de autorização.
+      allow list, create, update, delete: if false;
+    }
+
+    // Etapa 07A: todas as coleções operacionais e desconhecidas permanecem
+    // bloqueadas. As permissões por operação serão definidas no PROMPT 07B.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

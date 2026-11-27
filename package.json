@@ -7,6 +7,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.3.11",
     "@mui/material": "^7.3.11",
+    "firebase": "^13.4.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.18.7"
@@ -18,17 +19,23 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint src --fix",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-sgmlab \"vitest run --config vitest.rules.config.js\""
   },
   "type": "module",
+  "overrides": {
+    "@grpc/grpc-js": "^1.13.6"
+  },
   "engines": {
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@vitejs/plugin-react": "^6.3.0",
     "eslint": "^10.15.0",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "firebase-tools": "^15.37.0",
     "globals": "^17.14.0",
     "jsdom": "^31.0.1",
     "vite": "^8.3.8",

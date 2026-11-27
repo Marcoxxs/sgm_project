@@ -1,5 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import RequireAuth from "../auth/RequireAuth";
 import AppLayout from "../components/AppLayout";
+import LoginPage from "../pages/LoginPage";
 import PersonDetailsPage from "../pages/PersonDetailsPage";
 import RecordsPage from "../pages/RecordsPage";
 import RegistrationPage from "../pages/RegistrationPage";
@@ -13,7 +15,14 @@ export default function AppRoutes({ repository }) {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
-        <Route element={<AppLayout />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          element={(
+            <RequireAuth>
+              <AppLayout />
+            </RequireAuth>
+          )}
+        >
           <Route index element={<HomePage repository={repository} />} />
           <Route path="/cadastros" element={<RegistrationPage repository={repository} />} />
           <Route path="/registros" element={<RecordsPage repository={repository} />} />

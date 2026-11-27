@@ -3,9 +3,28 @@ import Close from "@mui/icons-material/Close";
 import LogoutOutlined from "@mui/icons-material/LogoutOutlined";
 import PersonOutline from "@mui/icons-material/PersonOutline";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { navigation } from "../routes/navigation";
 
+function initials(name) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+}
+
 export default function Sidebar({ onClose }) {
+  const { monitor, user, logout } = useAuth();
+  const monitorName = monitor?.name || "Monitor";
+  const email = monitor?.email || user?.email || "";
+
+  function signOut() {
+    onClose?.();
+    void logout().catch(() => {});
+  }
+
   return (
     <Stack sx={{ minHeight: "100%", px: 2 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 1, py: 3 }}>
@@ -46,14 +65,21 @@ export default function Sidebar({ onClose }) {
         <Stack spacing={1.25} sx={{ borderTop: 1, borderColor: "institutional.sidebarLine", pt: 2, px: 1 }}>
           <Stack direction="row" alignItems="center" spacing={1.25}>
             <Avatar sx={{ width: 34, height: 34, bgcolor: "institutional.sidebarLine", color: "institutional.sidebarText" }}>
-              <PersonOutline fontSize="small" />
+              {initials(monitorName) || <PersonOutline fontSize="small" />}
             </Avatar>
-            <Typography variant="body2" sx={{ fontWeight: 650 }}>Perfil do monitor</Typography>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="body2" sx={{ fontWeight: 650 }} noWrap>{monitorName}</Typography>
+              {email && (
+                <Typography variant="caption" sx={{ color: "institutional.sidebarText" }} noWrap component="p">
+                  {email}
+                </Typography>
+              )}
+            </Box>
           </Stack>
           <Button
-            disabled
             startIcon={<LogoutOutlined />}
-            sx={{ alignSelf: "flex-start", "&.Mui-disabled": { color: "institutional.sidebarText", opacity: 0.7 } }}
+            onClick={signOut}
+            sx={{ alignSelf: "flex-start", color: "institutional.sidebarText" }}
           >
             Sair
           </Button>

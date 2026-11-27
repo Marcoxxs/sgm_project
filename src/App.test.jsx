@@ -4,6 +4,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import App from "./App";
+import { createStubAuthService } from "./auth/stubAuthService";
 import { createMemoryLabRepository } from "./services/repositories/memoryLabRepository";
 
 const routes = [
@@ -39,7 +40,7 @@ afterEach(() => {
 
 function openRoute(path, repository = createMemoryLabRepository()) {
   window.history.replaceState(null, "", path);
-  act(() => root.render(<App repository={repository} />));
+  act(() => root.render(<App repository={repository} authService={createStubAuthService()} />));
 }
 
 test.each(routes)("abre %s e destaca %s no menu", (path, title, heading = title) => {

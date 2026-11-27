@@ -4,6 +4,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import App from "../App";
+import { createStubAuthService } from "../auth/stubAuthService";
 import { createMemoryLabRepository } from "../services/repositories/memoryLabRepository";
 
 const baseTime = Date.UTC(2026, 10, 20, 12, 0, 0);
@@ -33,7 +34,7 @@ afterEach(() => {
 
 function openRoute(path, repository) {
   window.history.replaceState(null, "", path);
-  act(() => root.render(<App repository={repository} />));
+  act(() => root.render(<App repository={repository} authService={createStubAuthService()} />));
 }
 
 function click(element) {

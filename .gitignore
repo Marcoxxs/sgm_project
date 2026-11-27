@@ -22,6 +22,9 @@
 .firebaserc.local
 .firebase/
 firebase-debug*.log
+firestore-debug.log
+ui-debug.log
+.firebase/emulator-data/
 *serviceAccount*.json
 *service-account*.json
 *firebase-adminsdk*.json

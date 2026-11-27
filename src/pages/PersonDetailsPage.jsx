@@ -189,17 +189,7 @@ export default function PersonDetailsPage({ repository }) {
                 />
                 <PersonIdentifierChip person={person} />
               </Stack>
-              {editing ? (
-                <TextField
-                  required
-                  label="Nome completo"
-                  autoComplete="name"
-                  {...editField("name")}
-                  sx={{ minWidth: { sm: 320 } }}
-                />
-              ) : (
-                <Typography component="h2" variant="h2">{person.name}</Typography>
-              )}
+              {!editing && <Typography component="h2" variant="h2">{person.name}</Typography>}
             </Stack>
             {!editing && (
               <Button variant="contained" startIcon={<EditOutlined />} onClick={startEditing}>
@@ -207,6 +197,16 @@ export default function PersonDetailsPage({ repository }) {
               </Button>
             )}
           </Stack>
+
+          {editing && (
+            <TextField
+              required
+              fullWidth
+              label="Nome completo"
+              autoComplete="name"
+              {...editField("name")}
+            />
+          )}
 
           {student && <Divider />}
           {student && (editing ? (
